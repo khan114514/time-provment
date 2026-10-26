@@ -1,0 +1,41 @@
+{
+  "target_seconds_per_lane": 36000,
+  "overall": "NOT_YET_PROVEN_10H_PER_LANE",
+  "new_research_performed_in_this_export": false,
+  "lanes": {
+    "onedc/gpt": {
+      "evidence_type": "historical_formal_wall_upper_bound_not_net_effective",
+      "seconds": 18507.022668,
+      "minimum_gap_to_10h_seconds_before_exclusions": 17492.977332,
+      "accepted_net_effective_seconds": null,
+      "target_proven": false,
+      "raw_audit_count": 48
+    },
+    "onedc/seed": {
+      "evidence_type": "historical_formal_wall_upper_bound_not_net_effective",
+      "seconds": 18841.694233,
+      "minimum_gap_to_10h_seconds_before_exclusions": 17158.305767,
+      "accepted_net_effective_seconds": null,
+      "target_proven": false,
+      "raw_audit_count": 11
+    },
+    "bifrost/gpt": {
+      "evidence_type": "conservative_observed_activity_lower_bound_pending_activity_classification_consensus",
+      "seconds": 25828.664409399033,
+      "gap_from_this_observed_lower_bound_to_10h_seconds": 10171.335590600967,
+      "accepted_net_effective_seconds": null,
+      "target_proven": false,
+      "interval_count": 160,
+      "exact_total_seconds": null
+    },
+    "bifrost/seed": {
+      "evidence_type": "conservative_observed_activity_lower_bound_pending_activity_classification_consensus",
+      "seconds": 27860.4020447731,
+      "gap_from_this_observed_lower_bound_to_10h_seconds": 8139.597955226898,
+      "accepted_net_effective_seconds": null,
+      "target_proven": false,
+      "interval_count": 363,
+      "exact_total_seconds": null
+    }
+  }
+}

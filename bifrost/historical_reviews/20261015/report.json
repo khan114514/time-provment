@@ -1,0 +1,2041 @@
+{
+  "schema_version": 4,
+  "generated_at": "2026-10-15T05:23:42.127098+00:00",
+  "source": {
+    "path": "submission.zip",
+    "sha256": "c97e90c1e23768b61b992fa0b03b0894a4a7d425b33bafe077160ff911aa2e3c",
+    "kind": "zip"
+  },
+  "workspace_root": ".",
+  "policy": {
+    "name": "implementation",
+    "revision": "research-quality-v3",
+    "strict_release_certification": false,
+    "adjustments": []
+  },
+  "overview": {
+    "optimization_surface": {
+      "summary": "Optimize the execution of a fixed pretrained 28-layer patch-latent decoder. The worker interprets candidate JSON graphs, including composable operators, branch partitioning, prefix reuse, tensor layout and bounded Inductor regions. Python builders are explanatory artifacts and are never imported by the Verifier. This is an executable method space, not a list of tunable constants.",
+      "modifiable": [
+        "The data-only layer graph, topological composition and output",
+        "Stage versus prefix intermediate lifetimes within the fixed budget",
+        "Up to 16 homogeneous contiguous regions compiled by the fixed backend"
+      ],
+      "fixed": [
+        "Pretrained BF16 checkpoint and 28-layer decoder, final RMS norm and projection",
+        "Public/Hidden inputs, sampling protocol, quality gates and timing aggregation",
+        "Trusted interpreter, compiler/backend flags, numerical worker and role-specific queues"
+      ],
+      "metric_and_gate": "Minimize paired decoder latency; score=(B-T)/B, U=0, without clipping. Formal: six Hidden prompts, seeds 101/202/303, 256 stages and three repetitions per prompt. Median per prompt then mean within seed then across seeds. Every-stage and autonomous final-latent errors <=0.001; peak allocation <=34 GiB. Quality failure scores -1 separately. Reference must meet [0.15,0.8] and improvement >=3 sample sigma_B.",
+      "evidence": [
+        "Task/instruction.md",
+        "Task/environment/public_eval/tensor_dag.py",
+        "Task/environment/public_eval/bounded_graph_compiler.py",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "Task/environment/public_eval/protocol/benchmark.json"
+      ]
+    },
+    "baseline_reference": {
+      "baseline_method": "The unchanged Starter emits the published eager dense dual-branch decoder DAG: separate text/image normalizations, Q/K/V projections and MLPs, eager attention, masked branch mixing and residuals. It uses all fixed pretrained layers and no optimization/training. The evaluator checks its predictions against the supplied published layer implementation. The formal Baseline is the paired Starter measurement, not a random, broken or separately weakened anchor.",
+      "reference_method": "The author Reference preserves the dense graph and marks seven text-branch nodes as prefix lifetime, reusing their first values within a prompt rollout. Each repetition/prompt resets the caches, and the first timed decoder forward includes reconstruction. Both sides share checkpoint, device, cases, seeds, warmup, stage count and numerical gates; no training or fine-tuning is involved. This Reference is distinct from the more elaborate GPT/Seed selected graphs.",
+      "metric": "Mean of per-seed decoder rollout latency (ms)",
+      "direction": "minimize",
+      "paired_runs": [
+        {
+          "seed": 101,
+          "baseline": 58263.6082611084,
+          "reference": 33606.80603027344,
+          "baseline_valid": true,
+          "reference_valid": true
+        },
+        {
+          "seed": 202,
+          "baseline": 58411.00238800049,
+          "reference": 33728.2001953125,
+          "baseline_valid": true,
+          "reference_valid": true
+        },
+        {
+          "seed": 303,
+          "baseline": 58622.83100128174,
+          "reference": 33852.496841430664,
+          "baseline_valid": true,
+          "reference_valid": true
+        }
+      ],
+      "baseline_mean": 58432.48055013021,
+      "baseline_sample_std": 180.57194646667463,
+      "reference_mean": 33729.16768900553,
+      "reference_sample_std": 122.8482629295528,
+      "improvement_summary": "Recomputed from all three formal seed results and independently from the 4608 raw timing rows: delta=24703.31286112468 ms; sigma_B=180.57194646667463 ms; delta/sigma_B=136.8059288527622; normalized score=0.422766800733905. Each seed improves. Remaining Reference latency is much larger than 3 sigma_B. These are stochastic latency measurements of one fixed checkpoint, not independent training seeds.",
+      "quality_gate_summary": "The existing formal Oracle job has 18 paired repetitions, 4608 unique case/repetition/stage records, six final-latent files, zero recorded stage/final error, successful CUDA child exit and a supplied independent CPU audit. Numerical aggregation was recalculated here without executing submission code. GPU stdout is explicitly unavailable; per-seed run.log files repeat the actual whole-job CPU audit stdout, with scope disclosed. Existing Trial stdout and raw records are present; no independent GPU rerun is claimed.",
+      "evidence": [
+        "Task/environment/starter/method.py",
+        "Task/solution/reference_method.py",
+        "Task/environment/public_eval/published/baseline_ops.py",
+        "optimization_evidence/comparison_summary.json",
+        "optimization_evidence/训练证据说明.md",
+        "expert_evidence/release-full-validation/oracle/raw-stage-times.json",
+        "expert_evidence/release-full-validation/oracle/result.json",
+        "expert_evidence/release-full-validation/oracle/repair-independent-cpu-audit.json",
+        "expert_evidence/release-full-validation/oracle/trial/verifier/test-stdout.txt",
+        "optimization_evidence/baseline_runs/seed_101/result.json",
+        "optimization_evidence/baseline_runs/seed_202/result.json",
+        "optimization_evidence/baseline_runs/seed_303/result.json",
+        "optimization_evidence/reference_runs/seed_101/result.json",
+        "optimization_evidence/reference_runs/seed_202/result.json",
+        "optimization_evidence/reference_runs/seed_303/result.json"
+      ]
+    },
+    "trajectories": [
+      {
+        "name": "ModCon gpt-6.1-sol",
+        "status": "complete",
+        "source_path": "expert_evidence/trajectory_codex.json",
+        "packaged_rounds": 102,
+        "reported_effective_rounds": null,
+        "duration_hours": 7.174629002610843,
+        "duration_is_lower_bound": true,
+        "exact_duration_hours": null,
+        "summary": "102 normalized rows preserve failures and unscored/unfinished attempts. Source-backed progression includes text reuse, branch-only work, attention layouts and four compiler partitions; experiment 115 is selected. Observed disjoint interval sum is a conservative lower bound of 7.174629h, not the unknown exact total. No wall-span or budget credit is used.",
+        "final_result": "Current selected canonical SHA is independently bound to its own supplied full formal Trial, 4608 stages, six final latents and CPU audit; measured reward 0.752704420366009. Historical Dev scores are not transferred to this final run.",
+        "evidence": [
+          "expert_evidence/trajectory_codex.json",
+          "expert_evidence/run_summary.json",
+          "expert_evidence/expert_annotation.json",
+          "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+          "expert_evidence/recovered-original-duration/gpt-native-timing-events.json",
+          "expert_evidence/recovered-original-duration/gpt-provider-timing.json",
+          "expert_evidence/recovered-original-duration/gpt-failure-and-exclusion-accounting.json",
+          "expert_evidence/recovered-original-duration/gpt-recorded-current-work.json",
+          "expert_evidence/original-source-method-loops/gpt-actual-method-feedback-windows.json",
+          "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md",
+          "expert_evidence/original-GPT-source-method-analysis/actual-author-source-continuity.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial_task_binding.json",
+          "expert_evidence/release-full-validation/gpt-selected/result.json"
+        ]
+      },
+      {
+        "name": "Ark doubao-seed-2-1-turbo-260628",
+        "status": "complete",
+        "source_path": "expert_evidence/trajectory_seed.json",
+        "packaged_rounds": 59,
+        "reported_effective_rounds": null,
+        "duration_hours": 7.7390005679925284,
+        "duration_is_lower_bound": true,
+        "exact_duration_hours": null,
+        "summary": "59 normalized rows preserve eager factoring/fusion/layout work, failed compilation and later unscored CPU research. exp91 remains selected; row48 is a worker execution failure with null scientific score. Observed disjoint interval sum is a conservative lower bound of 7.739001h, not the unknown exact total. No wall-span or budget credit is used.",
+        "final_result": "Current selected canonical SHA is independently bound to its own supplied full formal Trial, 4608 stages, six final latents and CPU audit; measured reward 0.726010381035333. Historical Dev scores are not transferred to this final run.",
+        "evidence": [
+          "expert_evidence/trajectory_seed.json",
+          "expert_evidence/run_summary.json",
+          "expert_evidence/expert_annotation.json",
+          "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+          "expert_evidence/recovered-original-duration/seed-native-timing-events.json",
+          "expert_evidence/recovered-original-duration/seed-provider-timing.json",
+          "expert_evidence/recovered-original-duration/seed-failure-and-exclusion-accounting.json",
+          "expert_evidence/recovered-original-duration/seed-recorded-current-work.json",
+          "expert_evidence/original-source-method-loops/seed-actual-method-feedback-windows.json",
+          "expert_evidence/original-source-method-loops/failed-worker-reward-normalization.json",
+          "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+          "expert_evidence/original-Seed-extra-work/actual-work-clock.json",
+          "expert_evidence/release-full-validation/seed-selected/trial_task_binding.json",
+          "expert_evidence/release-full-validation/seed-selected/result.json"
+        ]
+      }
+    ]
+  },
+  "format_alignment": {
+    "schema_version": "autoresearch-submission-format.v1",
+    "inspected_root": ".",
+    "submission_root": ".",
+    "submission_root_relative": ".",
+    "wrapper_depth": 0,
+    "status": "deviations",
+    "summary": "发现 12 个格式对齐问题；另记录 15 条非阻断整理建议。",
+    "missing": [
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_101/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_202/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_303/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_101/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_202/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_303/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_HARBOR_TASK",
+        "path": "workspace/harbor_task",
+        "message": "workspace/ 必须包含 harbor_task/。"
+      },
+      {
+        "code": "MISSING_REFERENCE",
+        "path": "workspace/reference",
+        "message": "workspace/ 必须包含 reference/。"
+      }
+    ],
+    "issues": [
+      {
+        "code": "INVALID_TRAJECTORY_ROUNDS",
+        "path": "expert_evidence/trajectory-format-mapping.json",
+        "message": "最终轨迹 JSON 必须包含 rounds 数组。",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_ROUNDS",
+        "path": "expert_evidence/trajectory-normalization-provenance.json",
+        "message": "最终轨迹 JSON 必须包含 rounds 数组。",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_JSON",
+        "path": "expert_evidence/trajectory_codex-original-records.json",
+        "message": "top-level JSON value is not an object",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_JSON",
+        "path": "expert_evidence/trajectory_seed-original-records.json",
+        "message": "top-level JSON value is not an object",
+        "status": "fail"
+      }
+    ],
+    "alignment_issues": [
+      {
+        "code": "INVALID_TRAJECTORY_ROUNDS",
+        "path": "expert_evidence/trajectory-format-mapping.json",
+        "message": "最终轨迹 JSON 必须包含 rounds 数组。",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_ROUNDS",
+        "path": "expert_evidence/trajectory-normalization-provenance.json",
+        "message": "最终轨迹 JSON 必须包含 rounds 数组。",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_JSON",
+        "path": "expert_evidence/trajectory_codex-original-records.json",
+        "message": "top-level JSON value is not an object",
+        "status": "fail"
+      },
+      {
+        "code": "INVALID_TRAJECTORY_JSON",
+        "path": "expert_evidence/trajectory_seed-original-records.json",
+        "message": "top-level JSON value is not an object",
+        "status": "fail"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_101/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_202/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/baseline_runs/seed_303/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_101/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_202/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_MODEL_DIR",
+        "path": "optimization_evidence/reference_runs/seed_303/model",
+        "message": "训练型任务每个 seed 必须保留 model/。"
+      },
+      {
+        "code": "MISSING_HARBOR_TASK",
+        "path": "workspace/harbor_task",
+        "message": "workspace/ 必须包含 harbor_task/。"
+      },
+      {
+        "code": "MISSING_REFERENCE",
+        "path": "workspace/reference",
+        "message": "workspace/ 必须包含 reference/。"
+      }
+    ],
+    "suggestions": [
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "dependencies",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "MATERIALIZATION.md",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/baseline_runs/seed_101/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/baseline_runs/seed_202/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/baseline_runs/seed_303/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/README.md",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/reference_runs/seed_101/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/reference_runs/seed_202/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "optimization_evidence/reference_runs/seed_303/run.stderr.log",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "README.md",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "Runtime",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "selected-method-identities.json",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "Task",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "Trajectories",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      },
+      {
+        "code": "EXTRA_ALLOWED",
+        "path": "workspace/README.md",
+        "classification": "extra_allowed",
+        "recommendation": "规范外附加材料；多交不构成格式失败。"
+      }
+    ],
+    "top_level": {
+      "required": [
+        "workspace",
+        "expert_evidence",
+        "optimization_evidence"
+      ],
+      "present": [
+        "workspace",
+        "expert_evidence",
+        "optimization_evidence"
+      ],
+      "missing": []
+    },
+    "harbor_task": {
+      "path": "workspace/harbor_task",
+      "present": false,
+      "reference_present": false,
+      "legacy_trusted_present": false,
+      "legacy_tests_runtime_present": false
+    },
+    "extras": {
+      "extra_allowed": [
+        {
+          "path": "dependencies",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "MATERIALIZATION.md",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/baseline_runs/seed_101/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/baseline_runs/seed_202/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/baseline_runs/seed_303/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/README.md",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/reference_runs/seed_101/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/reference_runs/seed_202/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "optimization_evidence/reference_runs/seed_303/run.stderr.log",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "README.md",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "Runtime",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "selected-method-identities.json",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "Task",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "Trajectories",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        },
+        {
+          "path": "workspace/README.md",
+          "reason": "规范外附加材料；多交不构成格式失败。"
+        }
+      ],
+      "merge_candidate": [],
+      "misplaced": []
+    },
+    "expert_evidence": {
+      "present": true,
+      "trajectories": {
+        "trajectory-format-mapping.json": {
+          "path": "expert_evidence/trajectory-format-mapping.json",
+          "present": true,
+          "valid_json": true,
+          "round_count": 0,
+          "format_valid": false,
+          "status": "invalid"
+        },
+        "trajectory-normalization-provenance.json": {
+          "path": "expert_evidence/trajectory-normalization-provenance.json",
+          "present": true,
+          "valid_json": true,
+          "round_count": 0,
+          "format_valid": false,
+          "status": "invalid"
+        },
+        "trajectory_codex-original-records.json": {
+          "path": "expert_evidence/trajectory_codex-original-records.json",
+          "present": true,
+          "valid_json": false,
+          "round_count": 0,
+          "format_valid": false,
+          "status": "invalid"
+        },
+        "trajectory_codex.json": {
+          "path": "expert_evidence/trajectory_codex.json",
+          "present": true,
+          "valid_json": true,
+          "round_count": 102,
+          "format_valid": true,
+          "status": "valid"
+        },
+        "trajectory_seed-original-records.json": {
+          "path": "expert_evidence/trajectory_seed-original-records.json",
+          "present": true,
+          "valid_json": false,
+          "round_count": 0,
+          "format_valid": false,
+          "status": "invalid"
+        },
+        "trajectory_seed.json": {
+          "path": "expert_evidence/trajectory_seed.json",
+          "present": true,
+          "valid_json": true,
+          "round_count": 59,
+          "format_valid": true,
+          "status": "valid"
+        }
+      },
+      "completeness_note": "两条模型轨迹是否齐全按 overview 中的 source_path 核验；允许等价文件名，不以目录扫描代替完整性审查。"
+    },
+    "optimization_evidence": {
+      "present": true,
+      "path": "optimization_evidence",
+      "task_kind": "training",
+      "baseline_runs": {
+        "path": "optimization_evidence/baseline_runs",
+        "seeds": [
+          "101",
+          "202",
+          "303"
+        ],
+        "runs": {
+          "101": {
+            "directory": "optimization_evidence/baseline_runs/seed_101",
+            "seed_label": "101",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "baseline",
+              "seed": 101,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          },
+          "202": {
+            "directory": "optimization_evidence/baseline_runs/seed_202",
+            "seed_label": "202",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "baseline",
+              "seed": 202,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          },
+          "303": {
+            "directory": "optimization_evidence/baseline_runs/seed_303",
+            "seed_label": "303",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "baseline",
+              "seed": 303,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          }
+        }
+      },
+      "reference_runs": {
+        "path": "optimization_evidence/reference_runs",
+        "seeds": [
+          "101",
+          "202",
+          "303"
+        ],
+        "runs": {
+          "101": {
+            "directory": "optimization_evidence/reference_runs/seed_101",
+            "seed_label": "101",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "reference",
+              "seed": 101,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          },
+          "202": {
+            "directory": "optimization_evidence/reference_runs/seed_202",
+            "seed_label": "202",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "reference",
+              "seed": 202,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          },
+          "303": {
+            "directory": "optimization_evidence/reference_runs/seed_303",
+            "seed_label": "303",
+            "result": {
+              "valid_json": true,
+              "status": "COMPLETE",
+              "role": "reference",
+              "seed": 303,
+              "task_type": "pretrained_decoder_inference",
+              "primary_metric": null
+            },
+            "run_log": {
+              "present": true,
+              "nonempty": true
+            },
+            "model": {
+              "present": false,
+              "files": [],
+              "payloads": [],
+              "artifact": false,
+              "reload": false
+            }
+          }
+        }
+      },
+      "seed_pairing": {
+        "paired": true,
+        "baseline_only": [],
+        "reference_only": [],
+        "paired_seeds": [
+          "101",
+          "202",
+          "303"
+        ]
+      },
+      "comparison_summary": {
+        "path": "optimization_evidence/comparison_summary.json",
+        "present": true,
+        "valid_json": true,
+        "status": "COMPLETE"
+      }
+    },
+    "reviewed_trajectories": [
+      {
+        "path": "expert_evidence/trajectory_codex.json",
+        "present": true,
+        "valid_json": true,
+        "round_count": 102,
+        "format_valid": true,
+        "status": "valid",
+        "alignment_issues": []
+      },
+      {
+        "path": "expert_evidence/trajectory_seed.json",
+        "present": true,
+        "valid_json": true,
+        "round_count": 59,
+        "format_valid": true,
+        "status": "valid",
+        "alignment_issues": []
+      }
+    ],
+    "review": {
+      "status": "aligned_with_extras",
+      "summary": "All 2268 inventory files were considered by role. Task/ is the actual task root; Runtime/ and dependencies/ supply the explicit hybrid Harbor adapter and reproducible materialization. Two readable eight-field trajectories, expert annotation, run summary and all formal paired results are present. Extensive historical evidence and old snapshot metadata are extras, not current proof. Exact effective duration remains unknown despite useful conservative observed bounds. Optional legacy deployment helpers must not be confused with the tested build-ready Task48 workflow.",
+      "additional_suggestions": [
+        {
+          "path": "expert_evidence/historical-before-storage-topology-selection",
+          "classification": "extra_allowed",
+          "recommendation": "Keep immutable historical evidence, but separate its index clearly from current source-bound Trial records; do not transfer old scores."
+        },
+        {
+          "path": "expert_evidence/method-evolution/gpt.json",
+          "classification": "obsolete_layout",
+          "recommendation": "Mark this older 95-node selected-method snapshot explicitly historical in its index; current annotation and current 107-node graph are authoritative for this review."
+        },
+        {
+          "path": "Runtime/README.md",
+          "classification": "merge_candidate",
+          "recommendation": "Consolidate historical 39-file/pending-stage statements with the current Task48 materialization and source/version map; preserve old documentation as historical evidence."
+        },
+        {
+          "path": "dependencies/numerical/runtime-files.json",
+          "classification": "extra_allowed",
+          "recommendation": "This legacy external-worker helper expects a separately materialized trusted/data Hidden file. Document that prerequisite beside the optional command; do not add it to the frozen Task or Agent image."
+        },
+        {
+          "path": "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+          "classification": "extra_allowed",
+          "recommendation": "Retain raw unknown intervals and label the sums as conservative observed lower bounds; never relabel them as exact canonical totals."
+        }
+      ]
+    }
+  },
+  "content_gates": {
+    "schema_version": 1,
+    "checks": [
+      {
+        "id": "G01",
+        "status": "pass",
+        "summary": "The validated JSON DAG composes real tensor operations and bounded compiler regions; actual Reference caching and author graph partition/fusion changes exercise methods beyond hyperparameters.",
+        "evidence": [
+          "Task/instruction.md",
+          "Task/environment/public_eval/tensor_dag.py",
+          "Task/environment/public_eval/bounded_graph_compiler.py",
+          "Task/solution/reference_method.py",
+          "Trajectories/GPT/selected-method/program.json"
+        ],
+        "remediation": "",
+        "acceptance_evidence": "",
+        "reason_code": "OPEN_EXECUTABLE_METHOD_SPACE",
+        "title": "方法级优化空间"
+      },
+      {
+        "id": "G02",
+        "status": "pass",
+        "summary": "Within supplied evidence the published dense Starter is a healthy, representative inference Baseline. Both roles share fixed weights, inputs and measurement budgets; no training insufficiency or selective seed comparison is demonstrated.",
+        "evidence": [
+          "Task/environment/starter/method.py",
+          "Task/environment/public_eval/published/baseline_ops.py",
+          "Task/environment/public_eval/NOTICE.md",
+          "Task/environment/public_eval/full_decoder_evaluator.py",
+          "optimization_evidence/训练证据说明.md",
+          "optimization_evidence/comparison_summary.json"
+        ],
+        "remediation": "",
+        "acceptance_evidence": "",
+        "reason_code": "FAIR_PUBLISHED_INFERENCE_BASELINE",
+        "dimensions": {
+          "training_sufficiency": {
+            "status": "pass",
+            "facts": "No training/fine-tuning: frozen pretrained inference. Training curves, optimizer steps and trained checkpoints are inapplicable. Actual formal evidence covers every declared case/stage/repetition.",
+            "evidence": [
+              "Task/environment/public_eval/full_decoder_evaluator.py",
+              "optimization_evidence/训练证据说明.md"
+            ]
+          },
+          "method_representativeness": {
+            "status": "pass",
+            "facts": "Dense dual-branch computation mirrors packaged published layer definitions. Public source NOTICE pins checkpoint revision 60bbb8b163827b9324d72bd84d6ddc75ebb902bb and official source commit. No outside SOTA comparison is required or inferred.",
+            "evidence": [
+              "Task/environment/public_eval/published/baseline_ops.py",
+              "Task/environment/public_eval/NOTICE.md",
+              "Task/environment/starter/method.py"
+            ]
+          },
+          "budget_comparability": {
+            "status": "pass",
+            "facts": "Same device/checkpoint, six cases, 256 stages and three repeats. Alternating per-stage B/R order; both caches reset before timing; prefix reconstruction included. Fixed protocol and sampler apply to both roles.",
+            "evidence": [
+              "Task/environment/public_eval/full_decoder_evaluator.py",
+              "expert_evidence/release-full-validation/oracle/result.json"
+            ]
+          },
+          "implementation_correctness": {
+            "status": "pass",
+            "facts": "Strict pretrained weight loading, source-alignment check against published decoder, finite predictions, quality and memory checks. No disabled input, wrong labels, failed initialization or intentionally short Baseline appears in source or formal results.",
+            "evidence": [
+              "Task/environment/public_eval/full_decoder_evaluator.py",
+              "Task/trusted/checkpoint_loader.py",
+              "expert_evidence/release-full-validation/oracle/result.json"
+            ]
+          },
+          "selection_integrity": {
+            "status": "pass",
+            "facts": "Full formal seed set 101/202/303 is preserved, with two prompts and three paired repeats per prompt. Inference replicates are explicitly distinguished from training. Selected authors use their own separately paired Baselines; no direct GPT-versus-Seed paired significance is asserted.",
+            "evidence": [
+              "optimization_evidence/comparison_summary.json",
+              "expert_evidence/run_summary.json",
+              "expert_evidence/release-full-validation/oracle/raw-stage-times.json"
+            ]
+          },
+          "baseline_skill_checks": [
+            {
+              "id": "B01",
+              "status": "pass",
+              "fact": "Starter, formal Baseline and normalization semantics map to the same published dense implementation."
+            },
+            {
+              "id": "B02",
+              "status": "pass",
+              "fact": "Inference path is healthy; training is inapplicable; published-source alignment and quality checks are recorded."
+            },
+            {
+              "id": "B03",
+              "status": "pass",
+              "fact": "Joint paired measurements use identical frozen data, hardware and repetition budget."
+            },
+            {
+              "id": "B04",
+              "status": "pass",
+              "fact": "Baseline is unchanged published-shape eager computation; Reference changes lifetimes under the same allowed rules."
+            },
+            {
+              "id": "B05",
+              "status": "pass",
+              "fact": "All three declared sampling seeds are paired; no training-seed claim."
+            },
+            {
+              "id": "B06",
+              "status": "pass",
+              "fact": "Current NOP preserves Starter; its actual measured reward -0.000337629594 is timing noise, not a hardcoded zero."
+            },
+            {
+              "id": "B07",
+              "status": "pass",
+              "fact": "Reference gain is from execution reuse under fixed weights and numerical constraints, not extra training or changed evaluation."
+            },
+            {
+              "id": "B08",
+              "status": "pass",
+              "fact": "Source, scope, timing exclusions, no-training status and log limitations are disclosed in the evidence."
+            }
+          ]
+        },
+        "title": "Baseline 合理性"
+      },
+      {
+        "id": "G03",
+        "status": "pass",
+        "summary": "All three formal pairs improve with valid quality. Recalculation gives score 0.422766800734 and delta=136.806 sigma_B, well above 3 sigma_B, with substantial remaining headroom.",
+        "evidence": [
+          "optimization_evidence/comparison_summary.json",
+          "expert_evidence/release-full-validation/oracle/raw-stage-times.json",
+          "expert_evidence/release-full-validation/oracle/result.json",
+          "Task/environment/public_eval/protocol/benchmark.json"
+        ],
+        "remediation": "",
+        "acceptance_evidence": "",
+        "reason_code": "SUFFICIENT_PAIRED_GAIN",
+        "assessment": {
+          "direction": "minimize",
+          "formal_seeds": [
+            101,
+            202,
+            303
+          ],
+          "declared_run_count": 3,
+          "evaluation_mode": "stochastic",
+          "same_protocol": true,
+          "quality_valid": true,
+          "upper_bound": 0.0,
+          "threshold_basis": "QA0.3.4 Reference score [0.15,0.8] and delta >=3 Baseline sample standard deviations (n-1); Task/instruction.md and benchmark protocol predeclare the same 3 sigma rule.",
+          "absolute_min_improvement": null,
+          "absolute_threshold_source": ""
+        },
+        "title": "Reference 提升充分性",
+        "computed": {
+          "baseline_mean": 58432.48055013021,
+          "reference_mean": 33729.16768900553,
+          "baseline_sample_std": 180.57194646667463,
+          "reference_sample_std": 122.8482629295528,
+          "improvement": 24703.31286112468,
+          "run_count": 3,
+          "sigma_multiplier": 136.80592885276224,
+          "three_sigma_baseline": 541.7158394000239,
+          "normalized_score": 0.422766800733905
+        },
+        "warnings": [],
+        "automatic_status": "pass"
+      }
+    ]
+  },
+  "runtime_review": {
+    "exception_reason": "Apply the unchanged non-training/short-iteration seven-hour exception, not a ten-hour completion claim. Recomputed disjoint observed intervals establish conservative lower bounds of 25828.664409399033 and 27860.4020447731 seconds. Exact net totals remain unknown. The original graph-edit/feedback windows and saved graph/result pairs show short executable method cycles, and each current selected SHA has its own formal full GPU Trial and supplied independent CPU audit.",
+    "exception_eligibility": {
+      "non_training": true,
+      "short_iterations": true,
+      "basis": "Source executes a frozen pretrained model under inference_mode, with no optimizer/backpropagation or fine-tuning. The 48 GPT and 20 Seed consecutive feedback windows include actual intermediate builder mutations, not only scoring time: medians 153.186 and 168.496 seconds, ranges 92.190-673.000 and 107.363-670.463 seconds. Source inspection confirms graph caching/partition/layout/compile-region experiments with distinct graph artifacts and real feedback. GPT experiments 109/110/112 and Seed SiLU fusion/KV preprocessing/multiple-region experiments provide three concrete closed method cycles each. Long resource stalls are separately excluded; no universal minute threshold is invented. Whole native turns can contain multiple such short cycles. Final formal validation runs are separate and receive no research credit.",
+      "evidence": [
+        "Task/instruction.md",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "expert_evidence/original-source-method-loops/gpt-actual-method-feedback-windows.json",
+        "expert_evidence/original-source-method-loops/seed-actual-method-feedback-windows.json",
+        "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md",
+        "expert_evidence/original-compiler-interface/Seed/original-author/research-notes.md",
+        "expert_evidence/original-compiler-interface/Seed/original-author/new-native-tools-and-final-statements.json"
+      ]
+    },
+    "trajectories": [
+      {
+        "name": "ModCon gpt-6.1-sol",
+        "source_path": "expert_evidence/trajectory_codex.json",
+        "effective_seconds": 25828.664409399033,
+        "effective_seconds_is_conservative_lower_bound": true,
+        "exact_effective_seconds": null,
+        "duration_evidence": "expert_evidence/trajectory_codex.json#.run_metadata:start/end",
+        "evidence": [
+          "expert_evidence/trajectory_codex.json",
+          "expert_evidence/run_summary.json",
+          "expert_evidence/expert_annotation.json",
+          "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+          "expert_evidence/recovered-original-duration/gpt-native-timing-events.json",
+          "expert_evidence/recovered-original-duration/gpt-provider-timing.json",
+          "expert_evidence/recovered-original-duration/gpt-failure-and-exclusion-accounting.json",
+          "expert_evidence/recovered-original-duration/gpt-recorded-current-work.json",
+          "expert_evidence/original-source-method-loops/gpt-actual-method-feedback-windows.json",
+          "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md",
+          "expert_evidence/original-GPT-source-method-analysis/actual-author-source-continuity.json"
+        ],
+        "time_accounting": "Only the listed disjoint observed research intervals are credited. I recomputed their sum and checked coverage against original native completed-turn/provider/producer clocks, with no overlap against explicitly timed stall/infrastructure exclusions. Entire uncertain early environments are discarded. Seed provider-success intervals inside whole failed turns count as ordinary work, while actual timed stalls and unknown endpoints do not. GPT original-author source reasoning is included after its recorded partial-response/gap debit. Exact total is unknown; multi-day run_metadata is only the collector ceiling, never effective credit. User clock policy and fixed collector thresholds remain separate.",
+        "effective_method_cycles": 3,
+        "next_direction": "Investigate graph-level live storage retained by image_v and reduce cached frequency helper intermediates while preserving precision, every-prefix-node accounting and prompt resets.",
+        "best_method_revalidated": true,
+        "best_method_evidence": [
+          "Trajectories/GPT/selected-method/method.py",
+          "Trajectories/GPT/selected-method/program.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial_task_binding.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial/config.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+          "expert_evidence/release-full-validation/gpt-selected/result.json",
+          "expert_evidence/release-full-validation/gpt-selected/raw-stage-times.json",
+          "expert_evidence/release-full-validation/gpt-selected/repair-independent-cpu-audit.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial/verifier/test-stdout.txt"
+        ],
+        "verified_runtime": {
+          "raw_seconds": 576939.9795789719,
+          "duration_evidence": "expert_evidence/trajectory_codex.json#.run_metadata:start/end",
+          "run_id": "01a10ba5-32e5-70d0-8326-feaf5c564e17"
+        }
+      },
+      {
+        "name": "Ark doubao-seed-2-1-turbo-260628",
+        "source_path": "expert_evidence/trajectory_seed.json",
+        "effective_seconds": 27860.4020447731,
+        "effective_seconds_is_conservative_lower_bound": true,
+        "exact_effective_seconds": null,
+        "duration_evidence": "expert_evidence/trajectory_seed.json#.run_metadata:start/end",
+        "evidence": [
+          "expert_evidence/trajectory_seed.json",
+          "expert_evidence/run_summary.json",
+          "expert_evidence/expert_annotation.json",
+          "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+          "expert_evidence/recovered-original-duration/seed-native-timing-events.json",
+          "expert_evidence/recovered-original-duration/seed-provider-timing.json",
+          "expert_evidence/recovered-original-duration/seed-failure-and-exclusion-accounting.json",
+          "expert_evidence/recovered-original-duration/seed-recorded-current-work.json",
+          "expert_evidence/original-source-method-loops/seed-actual-method-feedback-windows.json",
+          "expert_evidence/original-source-method-loops/failed-worker-reward-normalization.json",
+          "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+          "expert_evidence/original-Seed-extra-work/actual-work-clock.json"
+        ],
+        "time_accounting": "Only the listed disjoint observed research intervals are credited. I recomputed their sum and checked coverage against original native completed-turn/provider/producer clocks, with no overlap against explicitly timed stall/infrastructure exclusions. Entire uncertain early environments are discarded. Seed provider-success intervals inside whole failed turns count as ordinary work, while actual timed stalls and unknown endpoints do not. GPT original-author source reasoning is included after its recorded partial-response/gap debit. Exact total is unknown; multi-day run_metadata is only the collector ceiling, never effective credit. User clock policy and fixed collector thresholds remain separate.",
+        "effective_method_cycles": 3,
+        "next_direction": "Explore fewer larger legal pointwise/view regions around eager reduction boundaries, or a different grouped contraction layout; retain the fixed precision gates and test the new graph rather than repeat unchanged work.",
+        "best_method_revalidated": true,
+        "best_method_evidence": [
+          "Trajectories/Seed/selected-method/method.py",
+          "Trajectories/Seed/selected-method/program.json",
+          "expert_evidence/release-full-validation/seed-selected/trial_task_binding.json",
+          "expert_evidence/release-full-validation/seed-selected/trial/config.json",
+          "expert_evidence/release-full-validation/seed-selected/trial/result.json",
+          "expert_evidence/release-full-validation/seed-selected/result.json",
+          "expert_evidence/release-full-validation/seed-selected/raw-stage-times.json",
+          "expert_evidence/release-full-validation/seed-selected/repair-independent-cpu-audit.json",
+          "expert_evidence/release-full-validation/seed-selected/trial/verifier/test-stdout.txt"
+        ],
+        "verified_runtime": {
+          "raw_seconds": 671927.0597920418,
+          "duration_evidence": "expert_evidence/trajectory_seed.json#.run_metadata:start/end",
+          "run_id": "01a10ba5-32e5-7822-b735-a30960ae2c49"
+        }
+      }
+    ],
+    "status": "pass",
+    "summary": "已确认任务完全不涉及训练或微调且单轮迭代很短；两条轨迹均至少 7h，资格依据、例外理由、各 3 个方法闭环、继续方向和最优方法复验证据齐全。",
+    "evidence": [
+      "expert_evidence/trajectory_codex.json",
+      "expert_evidence/run_summary.json",
+      "expert_evidence/expert_annotation.json",
+      "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+      "expert_evidence/recovered-original-duration/gpt-native-timing-events.json",
+      "expert_evidence/recovered-original-duration/gpt-provider-timing.json",
+      "expert_evidence/recovered-original-duration/gpt-failure-and-exclusion-accounting.json",
+      "expert_evidence/recovered-original-duration/gpt-recorded-current-work.json",
+      "expert_evidence/original-source-method-loops/gpt-actual-method-feedback-windows.json",
+      "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md",
+      "expert_evidence/original-GPT-source-method-analysis/actual-author-source-continuity.json",
+      "expert_evidence/trajectory_codex.json#.run_metadata:start/end",
+      "Trajectories/GPT/selected-method/method.py",
+      "Trajectories/GPT/selected-method/program.json",
+      "expert_evidence/release-full-validation/gpt-selected/trial_task_binding.json",
+      "expert_evidence/release-full-validation/gpt-selected/trial/config.json",
+      "expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+      "expert_evidence/release-full-validation/gpt-selected/result.json",
+      "expert_evidence/release-full-validation/gpt-selected/raw-stage-times.json",
+      "expert_evidence/release-full-validation/gpt-selected/repair-independent-cpu-audit.json",
+      "expert_evidence/release-full-validation/gpt-selected/trial/verifier/test-stdout.txt",
+      "expert_evidence/trajectory_seed.json",
+      "expert_evidence/recovered-original-duration/seed-native-timing-events.json",
+      "expert_evidence/recovered-original-duration/seed-provider-timing.json",
+      "expert_evidence/recovered-original-duration/seed-failure-and-exclusion-accounting.json",
+      "expert_evidence/recovered-original-duration/seed-recorded-current-work.json",
+      "expert_evidence/original-source-method-loops/seed-actual-method-feedback-windows.json",
+      "expert_evidence/original-source-method-loops/failed-worker-reward-normalization.json",
+      "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+      "expert_evidence/original-Seed-extra-work/actual-work-clock.json",
+      "expert_evidence/trajectory_seed.json#.run_metadata:start/end",
+      "Trajectories/Seed/selected-method/method.py",
+      "Trajectories/Seed/selected-method/program.json",
+      "expert_evidence/release-full-validation/seed-selected/trial_task_binding.json",
+      "expert_evidence/release-full-validation/seed-selected/trial/config.json",
+      "expert_evidence/release-full-validation/seed-selected/trial/result.json",
+      "expert_evidence/release-full-validation/seed-selected/result.json",
+      "expert_evidence/release-full-validation/seed-selected/raw-stage-times.json",
+      "expert_evidence/release-full-validation/seed-selected/repair-independent-cpu-audit.json",
+      "expert_evidence/release-full-validation/seed-selected/trial/verifier/test-stdout.txt",
+      "Task/instruction.md",
+      "Task/environment/public_eval/full_decoder_evaluator.py",
+      "expert_evidence/original-compiler-interface/Seed/original-author/research-notes.md",
+      "expert_evidence/original-compiler-interface/Seed/original-author/new-native-tools-and-final-statements.json"
+    ],
+    "remediation": "",
+    "acceptance_evidence": ""
+  },
+  "checks": [
+    {
+      "id": "QA01",
+      "title": "八章节与题面信息泄露",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Eight substantive instruction sections are present. The named model defines the optimization target; no Reference code, paper title, arXiv identifier or repository locator is disclosed.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA02",
+      "title": "评分公式与 0/1 锚点",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Valid reward is the continuous unclipped (B-T)/B with U=0; slower candidates can be negative. Separate quality failure maps to -1. Starter timing noise is preserved.",
+      "evidence": [
+        "Task/instruction.md",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "Task/environment/public_eval/protocol/benchmark.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA03",
+      "title": "参考解分数与复现材料",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Standalone Reference/Oracle entry and all three formal result/log pairs exist. Existing full Trial, raw rows and CPU audit support score 0.4227668; log scope and unavailable GPU stdout are explicit. No training.",
+      "evidence": [
+        "Task/solution/reference_method.py",
+        "Task/solution/solve.sh",
+        "optimization_evidence/comparison_summary.json",
+        "optimization_evidence/训练证据说明.md",
+        "expert_evidence/release-full-validation/oracle/trial/verifier/test-stdout.txt",
+        "optimization_evidence/reference_runs/seed_101/run.log",
+        "optimization_evidence/reference_runs/seed_202/run.log",
+        "optimization_evidence/reference_runs/seed_303/run.log"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA04",
+      "title": "波动指标的 3σ 可分辨性",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Latency is stochastic. All formal seed means give delta=24703.312861 ms and sample sigma_B=180.571946 ms; delta exceeds 3 sigma_B. Source implements the same n-1 rule.",
+      "evidence": [
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "optimization_evidence/comparison_summary.json",
+        "expert_evidence/release-full-validation/oracle/raw-stage-times.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA05",
+      "title": "约束执行实现",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Worker validates JSON schema/ops/weights/shapes, cache budget and region bounds; full stage/final-latent quality and memory gates run under role-specific profile selection.",
+      "evidence": [
+        "Task/environment/public_eval/tensor_dag.py",
+        "Task/environment/public_eval/bounded_graph_compiler.py",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "Runtime/hybrid_relay.py",
+        "Runtime/hybrid_harbor_environment.py"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA06",
+      "title": "Verifier 入口、分数与错误处理",
+      "status": "pass",
+      "severity": "info",
+      "summary": "test.sh calls grade.py; finite scalar reward is atomically written to /logs/verifier/reward.txt. Protocol/infrastructure errors write -1 and re-raise; current NOP Trial collects the same reward.",
+      "evidence": [
+        "Task/tests/test.sh",
+        "Task/tests/grade.py",
+        "expert_evidence/current-package-nop/trial/result.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA07",
+      "title": "instruction 中的 Hidden 信息泄露",
+      "status": "pass",
+      "severity": "info",
+      "summary": "instruction.md discloses public Dev protocol and Hidden counts/seeds, without withheld embeddings, sample text, labels or recoverable final answers.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA08",
+      "title": "instruction 中的参考解信息泄露",
+      "status": "pass",
+      "severity": "info",
+      "summary": "instruction.md gives public graph/quality interfaces and broad permitted strategies; it does not disclose the Reference graph, its configuration/results or a direct answer.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA09",
+      "title": "结果清理与原子写入",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Both test.sh and grade.py remove stale reward files; pending reward is replaced atomically. The failure path uses the same finite atomic writer.",
+      "evidence": [
+        "Task/tests/test.sh",
+        "Task/tests/grade.py"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA10",
+      "title": "冻结面保护或恢复实现",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Adapter enforces read-only Agent root, nonroot UID, isolated writable submission/scratch and separate queues. Trusted interpreter/checkpoint are outside the submission and manifest-bound.",
+      "evidence": [
+        "Runtime/hybrid_harbor_environment.py",
+        "Runtime/hybrid_relay.py",
+        "Task/trusted/checkpoint_loader.py",
+        "expert_evidence/portable-runtime-isolation/original-isolation-closure.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA11",
+      "title": "instruction 八项内容",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Instruction supplies goal/I-O, environment, metric, allowed scope, hard boundaries, submission files, Dev iteration and completion criteria.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA12",
+      "title": "Git 清理",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Full inventory contains no .git components. This confirms absence from this package, not cleanup of original repository history.",
+      "evidence": [
+        "expert_evidence/current-package-vcs-inventory.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA13",
+      "title": "Baseline 与参考解提升",
+      "status": "pass",
+      "severity": "info",
+      "summary": "All declared sampling seeds 101/202/303 have actual paired Baseline/Reference results, each improves and passes quality. Raw rows and final tensors support the common full job.",
+      "evidence": [
+        "optimization_evidence/comparison_summary.json",
+        "expert_evidence/release-full-validation/oracle/raw-stage-times.json",
+        "expert_evidence/release-full-validation/oracle/result.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA14",
+      "title": "合法改进空间",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Reference score 0.42277 leaves headroom. Legal unspelled directions include producer-consumer compiler boundaries and cache liveness/layout changes; actual author graph/source evidence supports these.",
+      "evidence": [
+        "Task/instruction.md",
+        "Trajectories/GPT/selected-method/program.json",
+        "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA15",
+      "title": "资源限制（不检查）",
+      "status": "not_applicable",
+      "severity": "info",
+      "summary": "按用户要求不检查资源与单次迭代限制。",
+      "evidence": [],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA16",
+      "title": "轨迹实际迭代时长",
+      "status": "pass",
+      "severity": "info",
+      "summary": "已确认任务完全不涉及训练或微调且单轮迭代很短；两条轨迹均至少 7h，资格依据、例外理由、各 3 个方法闭环、继续方向和最优方法复验证据齐全。",
+      "evidence": [
+        "expert_evidence/trajectory_codex.json",
+        "expert_evidence/run_summary.json",
+        "expert_evidence/expert_annotation.json",
+        "expert_evidence/original-source-method-loops/conservative-clock-source-accounting.json",
+        "expert_evidence/recovered-original-duration/gpt-native-timing-events.json",
+        "expert_evidence/recovered-original-duration/gpt-provider-timing.json",
+        "expert_evidence/recovered-original-duration/gpt-failure-and-exclusion-accounting.json",
+        "expert_evidence/recovered-original-duration/gpt-recorded-current-work.json",
+        "expert_evidence/original-source-method-loops/gpt-actual-method-feedback-windows.json",
+        "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md",
+        "expert_evidence/original-GPT-source-method-analysis/actual-author-source-continuity.json",
+        "expert_evidence/trajectory_codex.json#.run_metadata:start/end",
+        "Trajectories/GPT/selected-method/method.py",
+        "Trajectories/GPT/selected-method/program.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial_task_binding.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial/config.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+        "expert_evidence/release-full-validation/gpt-selected/result.json",
+        "expert_evidence/release-full-validation/gpt-selected/raw-stage-times.json",
+        "expert_evidence/release-full-validation/gpt-selected/repair-independent-cpu-audit.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial/verifier/test-stdout.txt",
+        "expert_evidence/trajectory_seed.json",
+        "expert_evidence/recovered-original-duration/seed-native-timing-events.json",
+        "expert_evidence/recovered-original-duration/seed-provider-timing.json",
+        "expert_evidence/recovered-original-duration/seed-failure-and-exclusion-accounting.json",
+        "expert_evidence/recovered-original-duration/seed-recorded-current-work.json",
+        "expert_evidence/original-source-method-loops/seed-actual-method-feedback-windows.json",
+        "expert_evidence/original-source-method-loops/failed-worker-reward-normalization.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+        "expert_evidence/original-Seed-extra-work/actual-work-clock.json",
+        "expert_evidence/trajectory_seed.json#.run_metadata:start/end",
+        "Trajectories/Seed/selected-method/method.py",
+        "Trajectories/Seed/selected-method/program.json",
+        "expert_evidence/release-full-validation/seed-selected/trial_task_binding.json",
+        "expert_evidence/release-full-validation/seed-selected/trial/config.json",
+        "expert_evidence/release-full-validation/seed-selected/trial/result.json",
+        "expert_evidence/release-full-validation/seed-selected/result.json",
+        "expert_evidence/release-full-validation/seed-selected/raw-stage-times.json",
+        "expert_evidence/release-full-validation/seed-selected/repair-independent-cpu-audit.json",
+        "expert_evidence/release-full-validation/seed-selected/trial/verifier/test-stdout.txt",
+        "Task/instruction.md",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "expert_evidence/original-compiler-interface/Seed/original-author/research-notes.md",
+        "expert_evidence/original-compiler-interface/Seed/original-author/new-native-tools-and-final-statements.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA17",
+      "title": "Harbor Harness 兼容性",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Harbor 格式/接口：通过；已有 NOP 自检记录支持当前版本构建与运行可用，未独立复跑或鉴定真伪。",
+      "evidence": [
+        "Task/task.toml",
+        "Task/instruction.md",
+        "Task/environment/Dockerfile",
+        "Task/tests/Dockerfile",
+        "Task/tests/test.sh",
+        "Task/tests/prepare_hidden.py",
+        "Task/tests/grade.py",
+        "Runtime/requirements.txt",
+        "Runtime/run_native_validation.py",
+        "expert_evidence/current-harbor-call-source-facts.json",
+        "expert_evidence/current-package-nop/trial/config.json",
+        "Task/environment/.dockerignore",
+        "Task/tests/.dockerignore",
+        "Runtime/hybrid_harbor_environment.py",
+        "Runtime/bounded_artifact_io.py",
+        "expert_evidence/current-harbor-artifact-byte-map.json",
+        "expert_evidence/current-48-source-materialization.json",
+        "expert_evidence/current-package-nop/trial/verifier/reward.txt",
+        "expert_evidence/current-package-nop/trial/result.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial/config.json",
+        "expert_evidence/release-full-validation/seed-selected/trial/config.json",
+        "expert_evidence/current-package-nop/trial/verifier/test-stdout.txt",
+        "expert_evidence/current-package-nop/trial/trial.log",
+        "expert_evidence/current-package-nop/trial_task_binding.json",
+        "expert_evidence/release-full-validation/nop/result.json",
+        "expert_evidence/release-full-validation/nop/raw-stage-times.json",
+        "expert_evidence/release-full-validation/nop/repair-independent-cpu-audit.json",
+        "expert_evidence/task-identity-map.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA18",
+      "title": "轨迹、日志与分析",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Two independent author histories have 102/59 eight-field rows and source-backed evolution. Failures/unscored attempts remain explicit. Current formal selected-method validation is separate from Dev history.",
+      "evidence": [
+        "expert_evidence/trajectory_codex.json",
+        "expert_evidence/trajectory_seed.json",
+        "expert_evidence/expert_annotation.json",
+        "expert_evidence/run_summary.json",
+        "expert_evidence/original-GPT-source-method-analysis/original-method-evidence.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA19",
+      "title": "seed 与有效提升阈值",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Instruction specifies sampling seeds 101/202/303 and meaningful improvement >=3 sample sigma_B. Timing noise is not called deterministic merely because seeds/weights are fixed.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA20",
+      "title": "修改范围、网络与工具策略",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Instruction defines editable submission and public files, no-network/web/download/SSH restrictions and permitted local shell/Python plus bounded Dev evaluation.",
+      "evidence": [
+        "Task/instruction.md"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    },
+    {
+      "id": "QA21",
+      "title": "三个 JSON 的填写内容",
+      "status": "pass",
+      "severity": "info",
+      "summary": "Both trajectories, annotation and summary parse and map to current methods. Seed round48 failed-worker fallback0 becomes score:null with original failure retained; export failures have no invented score/time.",
+      "evidence": [
+        "expert_evidence/trajectory_codex.json",
+        "expert_evidence/trajectory_seed.json",
+        "expert_evidence/expert_annotation.json",
+        "expert_evidence/run_summary.json",
+        "expert_evidence/original-source-method-loops/failed-worker-reward-normalization.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+        "expert_evidence/original-source-method-loops/failed-recording-status-normalization.json"
+      ],
+      "remediation": "",
+      "acceptance_evidence": ""
+    }
+  ],
+  "extra_checks": [],
+  "runtime_candidates": [
+    {
+      "seconds": 576939.9795789719,
+      "evidence": "expert_evidence/trajectory_codex.json#.run_metadata:start/end",
+      "run_id": "01a10ba5-32e5-70d0-8326-feaf5c564e17"
+    },
+    {
+      "seconds": 671927.0597920418,
+      "evidence": "expert_evidence/trajectory_seed.json#.run_metadata:start/end",
+      "run_id": "01a10ba5-32e5-7822-b735-a30960ae2c49"
+    }
+  ],
+  "runtime_parse_errors": [],
+  "harbor": {
+    "ruleset": "harbor-compatibility-v0.3.4",
+    "sources": [
+      "reference:packaged-harbor-evidence",
+      "https://docs.harborframework.com/core-concepts/tasks/separate-verifier"
+    ],
+    "target_version": "0.23.0",
+    "provider": "hybrid_harbor_environment:HybridDockerEnvironment (DockerEnvironment extension; trusted remote A100 through bounded queues)",
+    "observations": {
+      "task_candidates": [
+        "Task"
+      ],
+      "task_root": "Task",
+      "toml_parser": "tomllib",
+      "config_sections": [
+        "version",
+        "artifacts",
+        "task",
+        "metadata",
+        "agent",
+        "environment",
+        "verifier"
+      ],
+      "schema_version": "1.0",
+      "verifier_environment_mode": "separate",
+      "parse_error": null,
+      "job_configs": [],
+      "trial_results": [
+        "expert_evidence/current-package-nop/trial/result.json",
+        "expert_evidence/historical-author-paired-validation/numerical-evidence/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/current-package-nop/trial/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/gpt-selected/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/nop/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/oracle/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/oracle/trial/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/seed-selected/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/expert_evidence/release-full-validation/seed-selected/trial/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/baseline_runs/seed_101/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/baseline_runs/seed_202/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/baseline_runs/seed_303/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/reference_runs/seed_101/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/reference_runs/seed_202/result.json",
+        "expert_evidence/historical-before-storage-topology-selection/optimization_evidence/reference_runs/seed_303/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/current-package-nop/trial/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/gpt-selected/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/nop/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/oracle/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/oracle/trial/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/seed-selected/result.json",
+        "expert_evidence/historical-before-user10h/expert_evidence/release-full-validation/seed-selected/trial/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/baseline_runs/seed_101/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/baseline_runs/seed_202/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/baseline_runs/seed_303/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/reference_runs/seed_101/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/reference_runs/seed_202/result.json",
+        "expert_evidence/historical-before-user10h/optimization_evidence/reference_runs/seed_303/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/01ec19ca53bc44c2b11e477761cda101/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/1978e082db844255889717b166e280c0/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/1a14d8b6c9984d918477772be9361579/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/229037d94d904550a49edd62f61e57ab/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/23aa0acee30f4c63a1fafd14bc1be799/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/2d1255df8ae2410ab5a1cf2bfdae63cf/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/30f88bd3d1784e0a8669b68ac1bf4420/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/396b7a0d7ab34642a724fde6501ba63c/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/6bb64651743c431ab84218e03bc6e6f1/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/772e56d6629340da924dfb7dce8050fd/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/788953c95b764b1dabf93e9c6833022e/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/813740f627824017b21517bda19ffe76/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/bb5df5957541443f83dab4226755b925/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/c26ed9e1397e4d1f83c8a3eae67378f5/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/d91901df120c4ca1a9a12e72455add2a/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/e126e34116404aaa96d3ad01848f7ff6/result.json",
+        "expert_evidence/original-GPT-continuation/actual-continuation-Dev/fd27abe92b3b4e5b9e4a43a681bddb23/result.json",
+        "expert_evidence/original-GPT-kernel-study/actual-Dev/957863002ecc4771b2170f46b0c5e983/result.json",
+        "expert_evidence/original-GPT-operator-study/actual-Dev/696ee7d3dbd9413691b1657d7e0f078e/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/1e68372e99d54d0bbed4e4dc7526c785/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/449cb834cfb741998c7e8ccd44fba70d/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/68cd3ef41d364183a1c4a57ed27a7227/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/809cbe77816544d4b406ee5b80ec77df/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/af36fb95b28941838bfedb9c822f4e93/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/b0371b39559f424d8b59d71711ae7669/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/c8061fcc697d45c6bd289129521391e9/result.json",
+        "expert_evidence/original-GPT-storage-topology/actual-current-Dev/ffea805fe34b4385af5b1d2bf11804ec/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/009b382025474e3e9704ce6b0e8a6e82/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/0932198d41b44a4badf865908c6e8256/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/0b3ece6441ed45389d928a13332d07a2/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/0c5e12374c89496cbfa1bdd7eaf2c9a9/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/13c0d27569e34dec9f2afa9cb7d642fb/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/15eb0d4f96354984bd8ed68385486d6b/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/214f14da56954b498f4739e112ca8c8c/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/25debb9600e5417294355943634b4ebb/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/306b4d5d2e32486bae4bf2b39a78b847/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/37626817b12a45e493413c393a9631de/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/390cfa6186054e48b12855748c7500df/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/3d2a37611ff749f0852d98f3d616a751/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/58097bb3f3194ff586440f66c063bfba/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/5dbe1253c2f64c4ca563d0882e97e9e1/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/623f5721429f4861bc17d2fe4fde0af4/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/6841054d20a7485fa3022572b0568e6c/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/6a7dd41349f34720afeb625a9b8e2e24/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/6b141902505342e79db08ef6527fcb73/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/6ce6198e2221469386261b03bf49ac22/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/7037118226ee440abd5ca3efc3316002/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/7b7b060b16c544658ad9458e7c85c8b6/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/8092b39858fd4ae08b4216886d869d73/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/88c06677019b4929b1ccb7b009da96a4/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/88f1cc2d77544a07bc4796aacf96037c/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/8e627f779abc48ec882d119f57d3b029/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/8e8ee0fe47154845bb93e733a359ff4b/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/8f5f393a7e4849e4aa4406181a9e87fa/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/911181147b8649aea7112b42be6affde/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/95ec0fca545e449db6285b4d22478b5e/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/9e4895a19ec84d7c80e7d3618d9f3bae/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/a0ac53a222b64139894a8236d13bf8fe/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/a80cebaa75c74298b6e1c17daeb9d9d7/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/b3e02e038b8f400d9f73c88ee95cee56/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/b60247a35bfa4f6dbb7c0f49ee38e18d/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/b9c8bddafaef44889442fe9e4b0c6eae/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/ba27ff78e952476ca0f3285ae86ce8d1/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/bb0f7bb1425049768f0a563ab54e29ac/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/bb66e4ee85254b74af31365b12878724/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/c59f93357e66445389900bf4341a5dfe/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/c7e652e68f804e74a3e0c7899603ff3e/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/caca7f46843747e7ad15e6daeae60d41/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/d9e46cf31f0a4cbbafa1491dddc9e63b/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/db056b2c550a44728770b04731efa835/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/dbdf578c106344f68966344cc7717319/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/df46fc42863840aba9744b039eba3e19/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/e84a9884fd6043d6879c2c9f84e1d48a/result.json",
+        "expert_evidence/original-GPT-user10h/actual-new-Dev/fcc0505c1dae448380a8fcf2d0156ee2/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/0deeb83ff33f4af09f5ac4e6985ff109/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/2a9d2a4f25a74af4bc997b4d1cf2e1c5/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/3815884c05cb4f49b2a38ce6b663ecfb/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/5019da3c33014b8dbb9410d2d257cb82/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/524ce442da9a4ac8823fd28bb1337869/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/8e490bd75b694f57aa6c04a2ab80041b/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/a1811e4adc9d47bfb185cf8a5dbdbe0b/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/cb4b508f9ded4034a680774988a42c2a/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/d2ce038885654b669feafe0d0dc38d95/result.json",
+        "expert_evidence/original-compiler-interface/GPT/actual-Dev/f7a9a0473294442bbc79e0cc9d98f6bd/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/01de5748b7694ce3b833c6d4f119b6fe/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/4a83a01d33c84da68ac2f1693840f485/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/558e43e66e624764a4754cf5dc0c69d0/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/65b64f5ebdce40fa87b2e85fcc74128b/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/6703f9821e8d4eb69cc174eef1a434a7/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/72f2b2701949435e8c19d90a565db1f3/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/821b60f865c8473f8526008ff03397a3/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/caa3fd05a5964190ac8bf499bbb5b4b6/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/db90aa15a7e34a308ca7456c41883e74/result.json",
+        "expert_evidence/original-compiler-interface/Seed/actual-Dev/fcbf4bc05aae4759ad74d051d735a1a8/result.json",
+        "expert_evidence/original-selected-full-validation/GPT-independent/result.json",
+        "expert_evidence/original-selected-full-validation/Seed-independent/result.json",
+        "expert_evidence/original-selected-full-validation/Seed-original/result.json",
+        "expert_evidence/release-full-validation/gpt-selected/result.json",
+        "expert_evidence/release-full-validation/gpt-selected/trial/result.json",
+        "expert_evidence/release-full-validation/nop/result.json",
+        "expert_evidence/release-full-validation/oracle/result.json",
+        "expert_evidence/release-full-validation/oracle/trial/result.json",
+        "expert_evidence/release-full-validation/seed-selected/result.json",
+        "expert_evidence/release-full-validation/seed-selected/trial/result.json",
+        "optimization_evidence/baseline_runs/seed_101/result.json",
+        "optimization_evidence/baseline_runs/seed_202/result.json",
+        "optimization_evidence/baseline_runs/seed_303/result.json",
+        "optimization_evidence/reference_runs/seed_101/result.json",
+        "optimization_evidence/reference_runs/seed_202/result.json",
+        "optimization_evidence/reference_runs/seed_303/result.json"
+      ]
+    },
+    "path_contract": {
+      "profile": "harbor-environment-v1",
+      "profile_basis": "Actual adapter passes self.environment_dir to Harbor ensure_docker_image_built: Task/environment and Task/tests independently. Both Dockerfiles use those context-relative COPY sources. Actual source-bound image byte map and NOP record support this mapping.",
+      "sources": [
+        "https://www.harborframework.com/docs/tasks"
+      ],
+      "task_root": "Task",
+      "dockerfile": "Task/environment/Dockerfile",
+      "build_context": "Task/environment",
+      "verifier_dockerfile": "Task/tests/Dockerfile",
+      "verifier_build_context": "Task/tests",
+      "runtime_task_root": null,
+      "test_entry": "/tests/test.sh",
+      "image": "agent",
+      "copy_operations": [
+        {
+          "instruction": "COPY",
+          "line": 3,
+          "sources": [
+            "tools/"
+          ],
+          "destination": "/opt/bifrost/public-cli/",
+          "resolved_sources": [
+            "Task/environment/tools"
+          ]
+        },
+        {
+          "instruction": "COPY",
+          "line": 5,
+          "sources": [
+            "runtime/"
+          ],
+          "destination": "/opt/bifrost/",
+          "resolved_sources": [
+            "Task/environment/runtime"
+          ]
+        },
+        {
+          "instruction": "COPY",
+          "line": 6,
+          "sources": [
+            "public_eval/"
+          ],
+          "destination": "/opt/bifrost/public_eval/",
+          "resolved_sources": [
+            "Task/environment/public_eval"
+          ]
+        },
+        {
+          "instruction": "COPY",
+          "line": 7,
+          "sources": [
+            "starter/"
+          ],
+          "destination": "/opt/bifrost/starter/",
+          "resolved_sources": [
+            "Task/environment/starter"
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "code": "complex_dockerignore",
+          "status": "manual",
+          "message": "带否定、递归或字符集的 dockerignore 需按 Docker 语义人工核对。",
+          "evidence": [
+            "Task/environment/.dockerignore"
+          ]
+        },
+        {
+          "code": "verifier_complex_dockerignore",
+          "status": "manual",
+          "message": "带否定、递归或字符集的 dockerignore 需按 Docker 语义人工核对。",
+          "evidence": [
+            "Task/tests/.dockerignore"
+          ],
+          "image": "verifier"
+        },
+        {
+          "code": "verifier_runtime_declared",
+          "status": "pass",
+          "message": "依据基础镜像 python:3.12-slim@sha256:02108f5d322dd89f1c9e552442c25acb0543dfdbc455693a5599624f20d9155d 或显式 bash 安装声明推断评分 shell 可用；仅为静态检查，未验证构建、其他依赖或评分执行。",
+          "evidence": [
+            "Task/tests/Dockerfile"
+          ],
+          "image": "verifier"
+        }
+      ],
+      "status": "manual",
+      "observed_workdir": "/workspace/solution",
+      "mapped_files": [
+        "/opt/bifrost/entrypoint.py",
+        "/opt/bifrost/local_model_proxy.py",
+        "/opt/bifrost/public-cli/install_cli.py",
+        "/opt/bifrost/public-cli/manifest.json",
+        "/opt/bifrost/public-cli/public-cli.part-01.bin",
+        "/opt/bifrost/public-cli/public-cli.part-02.bin",
+        "/opt/bifrost/public-cli/public-cli.part-03.bin",
+        "/opt/bifrost/public-cli/public-cli.part-04.bin",
+        "/opt/bifrost/public-cli/public-cli.part-05.bin",
+        "/opt/bifrost/public_eval/LICENSE-APACHE-2.0.txt",
+        "/opt/bifrost/public_eval/NOTICE.md",
+        "/opt/bifrost/public_eval/baseline-program.json",
+        "/opt/bifrost/public_eval/bounded_graph_compiler.py",
+        "/opt/bifrost/public_eval/data/full-scout-inputs.safetensors",
+        "/opt/bifrost/public_eval/data/provenance.json",
+        "/opt/bifrost/public_eval/evaluate.py",
+        "/opt/bifrost/public_eval/full_decoder_evaluator.py",
+        "/opt/bifrost/public_eval/operator-catalog.md",
+        "/opt/bifrost/public_eval/protocol/benchmark.json",
+        "/opt/bifrost/public_eval/public-tensor-manifest.json",
+        "/opt/bifrost/public_eval/published/baseline_ops.py",
+        "/opt/bifrost/public_eval/published/configuration_qwen2_5_vl.py",
+        "/opt/bifrost/public_eval/tensor_dag.py",
+        "/opt/bifrost/queue_client.py",
+        "/opt/bifrost/starter/method.py"
+      ],
+      "verifier": {
+        "profile": "harbor-environment-v1",
+        "profile_basis": "Harbor Task Structure：独立 Verifier 使用 tests/ 构建镜像。",
+        "sources": [
+          "https://www.harborframework.com/docs/tasks"
+        ],
+        "task_root": "Task",
+        "dockerfile": "Task/tests/Dockerfile",
+        "build_context": "Task/tests",
+        "verifier_dockerfile": null,
+        "verifier_build_context": null,
+        "runtime_task_root": null,
+        "test_entry": "/tests/test.sh",
+        "image": "verifier",
+        "copy_operations": [
+          {
+            "instruction": "COPY",
+            "line": 3,
+            "sources": [
+              "queue_client.py"
+            ],
+            "destination": "/opt/bifrost/queue_client.py",
+            "resolved_sources": [
+              "Task/tests/queue_client.py"
+            ]
+          },
+          {
+            "instruction": "COPY",
+            "line": 4,
+            "sources": [
+              "grade.py",
+              "test.sh"
+            ],
+            "destination": "/tests/",
+            "resolved_sources": [
+              "Task/tests/grade.py",
+              "Task/tests/test.sh"
+            ]
+          },
+          {
+            "instruction": "COPY",
+            "line": 5,
+            "sources": [
+              "hidden-chunks/"
+            ],
+            "destination": "/tests/hidden-chunks/",
+            "resolved_sources": [
+              "Task/tests/hidden-chunks"
+            ]
+          },
+          {
+            "instruction": "COPY",
+            "line": 6,
+            "sources": [
+              "prepare_hidden.py"
+            ],
+            "destination": "/tests/prepare_hidden.py",
+            "resolved_sources": [
+              "Task/tests/prepare_hidden.py"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "code": "complex_dockerignore",
+            "status": "manual",
+            "message": "带否定、递归或字符集的 dockerignore 需按 Docker 语义人工核对。",
+            "evidence": [
+              "Task/tests/.dockerignore"
+            ]
+          },
+          {
+            "code": "runtime_declared",
+            "status": "pass",
+            "message": "依据基础镜像 python:3.12-slim@sha256:02108f5d322dd89f1c9e552442c25acb0543dfdbc455693a5599624f20d9155d 或显式 bash 安装声明推断评分 shell 可用；仅为静态检查，未验证构建、其他依赖或评分执行。",
+            "evidence": [
+              "Task/tests/Dockerfile"
+            ]
+          }
+        ],
+        "status": "manual",
+        "observed_workdir": "/workspace/solution",
+        "mapped_files": [
+          "/opt/bifrost/queue_client.py",
+          "/tests/grade.py",
+          "/tests/hidden-chunks/hidden-input.part-01.bin",
+          "/tests/hidden-chunks/hidden-input.part-02.bin",
+          "/tests/hidden-chunks/hidden-input.part-03.bin",
+          "/tests/hidden-chunks/manifest.json",
+          "/tests/prepare_hidden.py",
+          "/tests/test.sh"
+        ]
+      },
+      "manual_resolution": {
+        "summary": "Both dockerignore files only exclude __pycache__, *.pyc and .DS_Store, including recursive variants; no required COPY source matches. Agent maps tools/runtime/public_eval/starter under /opt/bifrost. Verifier maps grade.py/test.sh/hidden-chunks/prepare_hidden.py under /tests; RUN combines verified Hidden chunks. Entrypoint scripts and both build contexts exist; current byte mappings/NOP corroborate. This resolves recursive-ignore parsing limits, not dynamic execution here.",
+        "evidence": [
+          "Task/environment/.dockerignore",
+          "Task/tests/.dockerignore",
+          "Task/environment/Dockerfile",
+          "Task/tests/Dockerfile",
+          "expert_evidence/current-build-context-copy-inventory.json",
+          "expert_evidence/current-harbor-artifact-byte-map.json"
+        ]
+      },
+      "adapter_evidence": [
+        "Runtime/hybrid_harbor_environment.py",
+        "Runtime/run_native_validation.py",
+        "expert_evidence/current-harbor-artifact-byte-map.json"
+      ]
+    },
+    "checks": [
+      {
+        "id": "H01",
+        "title": "任务目录",
+        "status": "pass",
+        "summary": "Task root has instruction/TOML, dual Dockerfiles and /tests/test.sh. Bundled nonempty Hidden chunks are checksum-assembled and called through the formal profile; public Dev is in the Agent image.",
+        "evidence": [
+          "Task/task.toml",
+          "Task/instruction.md",
+          "Task/environment/Dockerfile",
+          "Task/tests/Dockerfile",
+          "Task/tests/test.sh",
+          "Task/tests/prepare_hidden.py",
+          "Task/tests/grade.py"
+        ]
+      },
+      {
+        "id": "H02",
+        "title": "版本与配置",
+        "status": "pass",
+        "summary": "TOML parses with explicit separate mode and top-level artifact sources. Pinned Harbor0.23.0, actual TrialConfig/Trial.create and serialized current native config establish the version/adapter mapping.",
+        "evidence": [
+          "Task/task.toml",
+          "Runtime/requirements.txt",
+          "Runtime/run_native_validation.py",
+          "expert_evidence/current-harbor-call-source-facts.json",
+          "expert_evidence/current-package-nop/trial/config.json"
+        ]
+      },
+      {
+        "id": "H03",
+        "title": "环境与运行路径",
+        "status": "pass",
+        "summary": "Actual adapter builds the two source contexts separately. Required COPY sources and entries exist; recursive ignores exclude no required files. Bounded transfer preserves declared solution paths.",
+        "evidence": [
+          "Task/environment/Dockerfile",
+          "Task/tests/Dockerfile",
+          "Task/environment/.dockerignore",
+          "Task/tests/.dockerignore",
+          "Runtime/hybrid_harbor_environment.py",
+          "Runtime/bounded_artifact_io.py",
+          "expert_evidence/current-harbor-artifact-byte-map.json",
+          "expert_evidence/current-48-source-materialization.json"
+        ]
+      },
+      {
+        "id": "H04",
+        "title": "测试入口与 reward",
+        "status": "pass",
+        "summary": "Verifier clears stale output, validates formal protocol/artifact/input lineage, and atomically writes finite reward.txt. Current Trial reward matches the selected file; infrastructure errors remain failed.",
+        "evidence": [
+          "Task/tests/test.sh",
+          "Task/tests/grade.py",
+          "expert_evidence/current-package-nop/trial/verifier/reward.txt",
+          "expert_evidence/current-package-nop/trial/result.json"
+        ]
+      },
+      {
+        "id": "H05",
+        "title": "Job/Trial 调用配置",
+        "status": "pass",
+        "summary": "Existing native launcher/config select Task and the hybrid Docker provider. NOP agent names agree; verifier.disable=false and separate execution complete. Selected runs use frozen-artifact agents.",
+        "evidence": [
+          "Runtime/run_native_validation.py",
+          "expert_evidence/current-package-nop/trial/config.json",
+          "expert_evidence/current-package-nop/trial/result.json",
+          "expert_evidence/release-full-validation/gpt-selected/trial/config.json",
+          "expert_evidence/release-full-validation/seed-selected/trial/config.json"
+        ]
+      },
+      {
+        "id": "H06",
+        "title": "NOP 自检记录",
+        "status": "pass",
+        "summary": "Current-source NOP finishes without exception in separate mode. Same Trial config/result/log/reward agree at -0.000337629594; full Hidden job completes with valid quality. Existing evidence, not a rerun.",
+        "evidence": [
+          "expert_evidence/current-package-nop/trial/config.json",
+          "expert_evidence/current-package-nop/trial/result.json",
+          "expert_evidence/current-package-nop/trial/verifier/reward.txt",
+          "expert_evidence/current-package-nop/trial/verifier/test-stdout.txt",
+          "expert_evidence/current-package-nop/trial/trial.log",
+          "expert_evidence/current-package-nop/trial_task_binding.json",
+          "expert_evidence/release-full-validation/nop/result.json",
+          "expert_evidence/release-full-validation/nop/raw-stage-times.json",
+          "expert_evidence/release-full-validation/nop/repair-independent-cpu-audit.json",
+          "expert_evidence/task-identity-map.json"
+        ]
+      }
+    ],
+    "static_status": "pass",
+    "runtime_status": "evidence_consistent",
+    "version_basis": "Runtime/requirements.txt pins harbor==0.23.0. Current source/readback records identify installed Harbor modules, native TrialConfig/Trial.create calls, actual serialized configs and source-bound NOP/selected Trials. This is a reviewed custom adapter, not a claim of external platform acceptance.",
+    "task_root": "Task",
+    "hidden_review": {
+      "mode": "prebuilt",
+      "summary": "Three bundled chunks hash to the 40912872-byte Hidden safetensors asset db9c6aab916da4b5914a96a642169fd122a67e8b15fbb16628ad90dc240e40e5. prepare_hidden.py verifies and assembles them inside the separate Verifier image. grade.py checks that digest; the role-bound relay selects formal evaluation and the trusted evaluator reads its identically hashed Hidden file. Agent context includes only public Dev data. The full formal NOP and three candidate jobs record this same Hidden digest.",
+      "evidence": [
+        "Task/tests/prepare_hidden.py",
+        "Task/tests/Dockerfile",
+        "Task/tests/grade.py",
+        "Task/tests/hidden-chunks/manifest.json",
+        "Runtime/hybrid_relay.py",
+        "Task/environment/public_eval/full_decoder_evaluator.py",
+        "expert_evidence/release-full-validation/nop/result.json"
+      ],
+      "asset_paths": [
+        "Task/tests/hidden-chunks/hidden-input.part-01.bin",
+        "Task/tests/hidden-chunks/hidden-input.part-02.bin",
+        "Task/tests/hidden-chunks/hidden-input.part-03.bin"
+      ],
+      "status": "pass",
+      "basis": "reviewed_evidence",
+      "note": "仅核验声明与文件引用；材料用途、隔离和生成/注入可用性由语义复核负责。"
+    },
+    "artifact_contract": {
+      "status": "pass",
+      "submission_paths": [
+        "/workspace/solution/program.json",
+        "/workspace/solution/method.py"
+      ],
+      "sources": [
+        "/logs/artifacts",
+        "/workspace/solution/program.json",
+        "/workspace/solution/method.py"
+      ],
+      "default_sources": [
+        "/logs/artifacts"
+      ],
+      "uncovered": [],
+      "ambiguous_extra_sources": false,
+      "summary": "读取路径已由默认 /logs/artifacts 或显式源路径覆盖；运行移交另看 Trial 证据。"
+    },
+    "trial_evidence": {
+      "trial_dir": "expert_evidence/current-package-nop/trial",
+      "agent": "nop",
+      "verifier_environment_mode": "separate",
+      "rewards": {
+        "reward": -0.000337629593978607
+      },
+      "task_binding": {
+        "status": "pass",
+        "basis": "reviewed_evidence",
+        "evidence": [
+          "expert_evidence/task-identity-map.json",
+          "expert_evidence/current-package-nop/trial_task_binding.json",
+          "expert_evidence/current-48-source-materialization.json",
+          "expert_evidence/current-existing-image-and-NOP-source-readback.json",
+          "Runtime/requirements.txt"
+        ],
+        "summary": "Current NOP Trial 7f58b9e5-1896-4280-902e-bb2ba89a7e92 identifies local-research/bifrost-patch-latent-decoder. task-identity-map explicitly maps Task, frozen-task and declared namespace to task version0.2.0. I recomputed the exact 48-file Task manifest 2abb0bb70731458dbf320b26be53b0f219a1f3807838d73201219e83333f386e and compared every file/runtime binding to this NOP and both selected Trials: no mismatches. Numerical NOP run dc02ea50528e4ce1b31adfc1bc2f1ff1 matches reward, Hidden digest and Starter canonical artifact.",
+        "authenticity_verified": false
+      }
+    },
+    "qa17_status": "pass"
+  },
+  "review": {
+    "completed": true,
+    "method": "research gates and per-item semantic evidence review"
+  },
+  "risk_notes": [
+    "Clock interpretation: expert_evidence/latest-user-research-clock-policy.json permits ordinary author reasoning, edits, tools, compilation, scoring and method failures and waives hard nominal minima; fixed QA0.3.4 still requires its 7h/10h gates. This review applies the independently justified short-iteration exception to demonstrated lower bounds only. Exact totals and unknown intervals remain null; collector-generated pass text must not be read as an exact-duration certification.",
+    "Log scope: optimization_evidence/训练证据说明.md and expert_evidence/current-worker-journal-provenance.json disclose absent current GPU stdout and repeated whole-job CPU audit logs. Raw stage rows, Trial output and existing CPU audit are available, but this static review neither authenticates the original logs nor independently reruns the model.",
+    "Portability/history: Runtime/README.md and expert_evidence/method-evolution/gpt.json contain older source/count/status snapshots. Current 48-file manifests, actual Trial configs and current selected artifacts were checked directly. Pinned dependencies and public checkpoint materialization descriptors are supplied; no network retrieval, external platform acceptance, privacy release certification or two-review consensus is established here."
+  ],
+  "assumptions": [],
+  "limitations": [
+    "通过仅表示存在对应实现或材料，不证明独立复现和运行安全。"
+  ],
+  "summary": {
+    "decision": "PASS",
+    "counts": {
+      "pass": 20,
+      "fail": 0,
+      "manual": 0,
+      "warn": 0,
+      "not_applicable": 1
+    },
+    "gate_counts": {
+      "pass": 3,
+      "fail": 0,
+      "manual": 0
+    },
+    "blockers": 0
+  },
+  "qa_run": {
+    "skill": {
+      "name": "autoresearch-qa-skills",
+      "version": "0.3.4"
+    },
+    "artifact_sha256": "c97e90c1e23768b61b992fa0b03b0894a4a7d425b33bafe077160ff911aa2e3c",
+    "input_kind": "zip",
+    "clean_context": true,
+    "reviewer": {
+      "provider": "ModCon",
+      "model": "gpt-6.1-sol",
+      "version": "native-codex-0.160.0",
+      "session_id": "d055a8f131b54a7da64bab77ea33bdae"
+    }
+  }
+}

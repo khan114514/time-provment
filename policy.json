@@ -1,0 +1,18 @@
+{
+  "source": "本聊天用户直接要求：两个都以10小时为目标，然后把充分的证据都发到time-provment",
+  "tasks": [
+    "onedc",
+    "bifrost"
+  ],
+  "lanes": [
+    "gpt",
+    "seed"
+  ],
+  "required_effective_seconds_per_lane": 36000,
+  "seven_hour_exception_used": false,
+  "cross_lane_or_cross_task_addition_allowed": false,
+  "historical_reports_are_unmodified_evidence_not_current_acceptance": true,
+  "work_scope": "整理并上传既有证据；本提交不声称已补跑到10h",
+  "SAM27_current_ledger_located": false,
+  "credit_rule": "依据原始起止与实际活动分类，区间取并集；排除安装、排队、故障、API阻塞、空转、暂停；最终复验/QA/稳定性另列；未知不估算成已验证时间"
+}
